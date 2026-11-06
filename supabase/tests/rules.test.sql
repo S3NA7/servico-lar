@@ -40,12 +40,12 @@ select lives_ok(
   'cliente cria solicitação em horário livre'
 );
 select is(
-  (select status from public.service_requests where client_id = :'cliente' limit 1),
+  (select status from public.service_requests where client_id = :'cliente' and starts_at = pg_temp.next_monday_at(9)),
   'pending'::public.request_status,
   'nova solicitação nasce pendente'
 );
 select is(
-  (select ends_at - starts_at from public.service_requests where client_id = :'cliente' limit 1),
+  (select ends_at - starts_at from public.service_requests where client_id = :'cliente' and starts_at = pg_temp.next_monday_at(9)),
   interval '60 minutes',
   'ends_at calculado pela duração do serviço'
 );
@@ -81,7 +81,7 @@ select throws_ok(
 -- 4. Transições --------------------------------------------------------------
 -- cliente não pode aceitar
 select throws_ok(
-  $$ update public.service_requests set status = 'accepted' where client_id = '11111111-1111-1111-1111-111111111111' $$,
+  $$ update public.service_requests set status = 'accepted' where client_id = '11111111-1111-1111-1111-111111111111' and status = 'pending' $$,
   '42501',
   null,
   'cliente não pode aceitar a própria solicitação'
@@ -135,7 +135,7 @@ select pg_temp.logout();
 -- 6. Avaliações (Review Focus 5) ----------------------------------------------
 -- Atendimento concluído no passado, inserido diretamente.
 insert into public.service_requests (id, service_id, client_id, professional_id, starts_at, ends_at, status, respond_by, created_at)
-values ('cccccccc-0000-0000-0000-000000000001', :'servico', :'cliente', :'carlos',
+values ('ffffffff-0000-0000-0000-000000000001', :'servico', :'cliente', :'carlos',
         now() - interval '3 days', now() - interval '3 days' + interval '1 hour', 'completed', now() - interval '4 days', now() - interval '5 days');
 
 select pg_temp.login(:'cliente');
@@ -149,7 +149,7 @@ select throws_ok(
 );
 select lives_ok(
   $$ insert into public.reviews (request_id, client_id, professional_id, rating, comment)
-     values ('cccccccc-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 5, 'Excelente!') $$,
+     values ('ffffffff-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 5, 'Excelente!') $$,
   'cliente avalia atendimento concluído'
 );
 select pg_temp.logout();

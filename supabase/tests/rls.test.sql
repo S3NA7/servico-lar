@@ -42,13 +42,13 @@ select is(
 -- Ana (outra profissional) não vê a solicitação do Carlos -----------------------
 select pg_temp.login(:'ana');
 select is(
-  (select count(*) from public.service_requests),
+  (select count(*) from public.service_requests where id = 'dddddddd-0000-0000-0000-000000000001'),
   0::bigint,
   'profissional não envolvido não lê solicitações de outros'
 );
 -- mas vê o período ocupado, sem saber de quem é
 select is(
-  (select count(*) from public.professional_busy_slots where professional_id = :'carlos'),
+  (select count(*) from public.professional_busy_slots where professional_id = :'carlos' and starts_at > now()),
   1::bigint,
   'horários ocupados do Carlos aparecem na view pública'
 );
@@ -72,7 +72,7 @@ select pg_temp.logout();
 -- Cliente ---------------------------------------------------------------------
 select pg_temp.login(:'cliente');
 select is(
-  (select count(*) from public.service_requests),
+  (select count(*) from public.service_requests where id = 'dddddddd-0000-0000-0000-000000000001'),
   1::bigint,
   'cliente lê a própria solicitação'
 );

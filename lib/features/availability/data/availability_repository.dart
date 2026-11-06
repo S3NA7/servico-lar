@@ -14,9 +14,11 @@ class AvailabilityRepository {
         .from('professional_availability')
         .select()
         .eq('professional_id', professionalId)
-        .order('weekday')
-        .order('start_time');
-    return rows.map(AvailabilityRule.fromJson).toList();
+        .order('weekday', ascending: true);
+    return rows.map(AvailabilityRule.fromJson).toList()
+      ..sort((a, b) => a.weekday != b.weekday
+          ? a.weekday.compareTo(b.weekday)
+          : a.startMinutes.compareTo(b.startMinutes));
   }
 
   Future<void> addRule(String professionalId, AvailabilityRule rule) =>

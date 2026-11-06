@@ -76,3 +76,35 @@ select '22222222-2222-2222-2222-222222222222', d, t.s, t.e
 insert into public.professional_availability (professional_id, weekday, start_time, end_time)
 select '33333333-3333-3333-3333-333333333333', d, '07:00'::time, '16:00'::time
   from generate_series(1, 6) d;
+
+-- Histórico de demonstração: atendimentos concluídos e avaliações ----------------
+-- (inseridos diretamente; o trigger de avaliação exige auth.uid() = cliente)
+insert into public.service_requests (id, service_id, client_id, professional_id, starts_at, ends_at, status, note, respond_by, created_at)
+values
+  ('cccccccc-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000002',
+   '11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222',
+   now() - interval '10 days', now() - interval '10 days' + interval '90 minutes', 'completed',
+   'Chuveiro novo já comprado.', now() - interval '11 days', now() - interval '12 days'),
+  ('cccccccc-0000-0000-0000-000000000002', 'aaaaaaaa-0000-0000-0000-000000000004',
+   '11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333',
+   now() - interval '5 days', now() - interval '5 days' + interval '8 hours', 'completed',
+   null, now() - interval '6 days', now() - interval '7 days'),
+  ('cccccccc-0000-0000-0000-000000000003', 'aaaaaaaa-0000-0000-0000-000000000001',
+   '11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222',
+   now() - interval '20 days', now() - interval '20 days' + interval '60 minutes', 'completed',
+   null, now() - interval '21 days', now() - interval '22 days');
+
+select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', false);
+insert into public.reviews (request_id, client_id, professional_id, rating, comment) values
+  ('cccccccc-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 5, 'Pontual, explicou tudo e deixou o banheiro limpo. Recomendo!'),
+  ('cccccccc-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 4, 'Bom serviço, só atrasou uns 15 minutos.'),
+  ('cccccccc-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333', 5, 'Apartamento ficou impecável.');
+select set_config('request.jwt.claim.sub', '', false);
+
+-- Atendimento concluído ainda sem avaliação (para demonstrar o fluxo de avaliar)
+insert into public.service_requests (id, service_id, client_id, professional_id, starts_at, ends_at, status, note, respond_by, created_at)
+values
+  ('cccccccc-0000-0000-0000-000000000004', 'aaaaaaaa-0000-0000-0000-000000000005',
+   '11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333',
+   now() - interval '2 days', now() - interval '2 days' + interval '4 hours', 'completed',
+   'Obra do banheiro terminou ontem.', now() - interval '3 days', now() - interval '4 days');
