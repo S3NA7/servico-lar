@@ -6,10 +6,18 @@ import '../../features/auth/domain/user_role.dart';
 import '../../features/auth/presentation/auth_providers.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import '../../features/availability/presentation/availability_screen.dart';
+import '../../features/bookings/presentation/booking_screen.dart';
+import '../../features/bookings/presentation/my_requests_screen.dart';
+import '../../features/bookings/presentation/pro_dashboard_screen.dart';
+import '../../features/catalog/presentation/client_home_screen.dart';
+import '../../features/catalog/presentation/my_services_screen.dart';
+import '../../features/catalog/presentation/service_detail_screen.dart';
+import '../../features/catalog/presentation/service_form_screen.dart';
+import '../../features/catalog/presentation/service_list_screen.dart';
 import '../../features/profile/data/profile_repository.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import 'app_shell.dart';
-import 'placeholder_screen.dart';
 import 'splash_screen.dart';
 
 /// Notifica o router quando sessão ou perfil mudam, e decide redirecionamentos.
@@ -71,15 +79,39 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/client',
-              builder: (_, _) =>
-                  const PlaceholderScreen(title: 'Buscar serviços'),
+              builder: (_, _) => const ClientHomeScreen(),
+              routes: [
+                GoRoute(
+                  path: 'services',
+                  builder: (_, state) => ServiceListScreen(
+                    categoryId:
+                        int.tryParse(state.uri.queryParameters['category'] ?? ''),
+                    query: state.uri.queryParameters['q'] ?? '',
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: ':id',
+                      builder: (_, state) => ServiceDetailScreen(
+                        serviceId: state.pathParameters['id']!,
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: 'book',
+                          builder: (_, state) => BookingScreen(
+                            serviceId: state.pathParameters['id']!,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/client/requests',
-              builder: (_, _) =>
-                  const PlaceholderScreen(title: 'Minhas solicitações'),
+              builder: (_, _) => const MyRequestsScreen(),
             ),
           ]),
           StatefulShellBranch(routes: [
@@ -99,21 +131,31 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/pro',
-              builder: (_, _) => const PlaceholderScreen(title: 'Painel'),
+              builder: (_, _) => const ProDashboardScreen(),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/pro/services',
-              builder: (_, _) =>
-                  const PlaceholderScreen(title: 'Meus serviços'),
+              builder: (_, _) => const MyServicesScreen(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  builder: (_, _) => const ServiceFormScreen(),
+                ),
+                GoRoute(
+                  path: ':id/edit',
+                  builder: (_, state) => ServiceFormScreen(
+                    serviceId: state.pathParameters['id'],
+                  ),
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/pro/availability',
-              builder: (_, _) =>
-                  const PlaceholderScreen(title: 'Minha agenda'),
+              builder: (_, _) => const AvailabilityScreen(),
             ),
           ]),
           StatefulShellBranch(routes: [

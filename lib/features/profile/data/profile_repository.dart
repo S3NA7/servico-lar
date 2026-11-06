@@ -30,3 +30,8 @@ final currentProfileProvider = FutureProvider<Profile?>((ref) async {
   if (uid == null) return null;
   return ref.watch(profileRepositoryProvider).fetch(uid);
 });
+
+/// Perfil público de qualquer usuário (nome, bio).
+final profileByIdProvider = FutureProvider.autoDispose.family<Profile?, String>(
+  (ref, id) => ref.watch(profileRepositoryProvider).fetch(id),
+);
